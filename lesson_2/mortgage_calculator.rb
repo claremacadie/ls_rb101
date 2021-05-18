@@ -1,9 +1,5 @@
 # mortgage_calculator.rb
 
-# link to yaml file for messages to user
-require 'yaml'
-MESSAGES = YAML.load_file('mortgage_calculator_messages.yml')
-
 # method to standardise output messages to user
 def prompt(message)
   puts("=> #{message}")
