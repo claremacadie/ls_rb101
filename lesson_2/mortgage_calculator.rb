@@ -1,33 +1,47 @@
 # mortgage_calculator.rb
 
-# method to standardise output messages to user
+require 'yaml'
+MESSAGES = YAML.load_file('mortgage_calculator_messages.yml')
+
 def prompt(message)
   puts("=> #{message}")
 end
 
-# method to determine if a number entered as a string is a valid integer
 def valid_integer?(number)
   number.to_i.to_s == number
 end
 
-# method to determine if a number entered as a string is a valid float
-def valid_float?(number)
-  number.to_f.to_s == number
+def remove_trailing_zeros(number)
+  while number[-1] == "0" && number.length > 1
+    number.chop!
+  end
 end
 
-# method to obtain loan amount from user
+def valid_float?(string)
+  return false if string.include?('.') == false
+  separated_number = string.split(".")
+  return false if separated_number.size > 2
+  fractional = separated_number[1]
+  remove_trailing_zeros(fractional)
+  float = separated_number[0] + "." + fractional
+  float.to_f.to_s == float
+end
+
+def valid_loan_amount?(number)
+  (number.to_i.positive? || number.to_f.positive?) &&
+    (valid_integer?(number) ||
+    (valid_float?(number) && number.split('.')[1].size < 3))
+end
+
 def get_loan_amount
   loop do
     prompt(MESSAGES['loan_amount'])
     loan_amount = gets.chomp.gsub(',', '').gsub('£', '')
-    return loan_amount if (loan_amount.to_f > 0 || loan_amount.to_i > 0) &&
-                          (valid_integer?(loan_amount) ||
-                          valid_float?(loan_amount))
+    return loan_amount if valid_loan_amount?(loan_amount)
     prompt(MESSAGES['valid_loan_amount'])
   end
 end
 
-# method to obtain APR from user
 def get_apr
   loop do
     prompt(MESSAGES['apr'])
@@ -37,7 +51,6 @@ def get_apr
   end
 end
 
-# method to obtain loan duration from user
 def get_loan_duration
   loop do
     prompt(MESSAGES['loan_duration'])
@@ -49,45 +62,37 @@ def get_loan_duration
   end
 end
 
-# method to convert apr to monthly interest rate
 def convert_apr_to_monthly_rate(apr)
   apr.to_f / 1200
 end
 
-# method to convert loan duration to months
 def convert_loan_duration_to_months(loan_duration_years)
   loan_duration_years.to_f * 12
 end
 
-# method to calculate monthly payments
 def calc_mthly_payments(loan_amount, mthly_rate, loan_dur_mths)
   if mthly_rate == 0
-    m = loan_amount.to_i / loan_dur_mths
+    loan_amount.to_i / loan_dur_mths
   else
-    m = loan_amount.to_i *
-        (mthly_rate / (1 - (1 + mthly_rate)**(-loan_dur_mths)))
+    loan_amount.to_i *
+      (mthly_rate / (1 - (1 + mthly_rate)**(-loan_dur_mths)))
   end
-  m.round(2)
 end
 
-# method to display monthly payment
 def display_monthly_payment(monthly_payment)
-  puts "Your monthly repayments will be: £#{monthly_payment}"
+  puts "Your monthly repayments will be: £#{format('%.2f', monthly_payment)}."
 end
 
-# method to display calculating
 def display_calculating
   prompt(MESSAGES['calculating'])
   sleep(2)
 end
 
-# method to ask if user would like another calculation
 def ask_another_calculation
   prompt(MESSAGES['another_calculation'])
   gets.chomp
 end
 
-# main program
 system('clear')
 prompt(MESSAGES['welcome'])
 loop do
@@ -99,6 +104,7 @@ loop do
   monthly_payment = calc_mthly_payments(loan_amount, mthly_rate, loan_dur_mths)
   display_calculating
   display_monthly_payment(monthly_payment)
+  puts
   answer = ask_another_calculation
   break unless answer.downcase == 'y'
   system('clear')
