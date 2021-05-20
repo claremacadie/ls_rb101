@@ -7,7 +7,8 @@ def prompt(message)
   puts("=> #{message}")
 end
 
-def valid_integer?(number)
+def valid_positive_integer?(number)
+  return false if number.to_i.positive? == false
   number.to_i.to_s == number
 end
 
@@ -17,7 +18,8 @@ def remove_trailing_zeros(number)
   end
 end
 
-def valid_float?(string)
+def valid_positive_float?(string)
+  return false if string.to_f.positive? == false
   return false if string.include?('.') == false
   separated_number = string.split(".")
   return false if separated_number.size > 2
@@ -28,9 +30,8 @@ def valid_float?(string)
 end
 
 def valid_loan_amount?(number)
-  (number.to_i.positive? || number.to_f.positive?) &&
-    (valid_integer?(number) ||
-    (valid_float?(number) && number.split('.')[1].size < 3))
+  (valid_positive_integer?(number) ||
+  (valid_positive_float?(number) && number.split('.')[1].size < 3))
 end
 
 def get_loan_amount
@@ -46,7 +47,9 @@ def get_apr
   loop do
     prompt(MESSAGES['apr'])
     apr = gets.chomp
-    return apr if apr.to_f >= 0 && (valid_integer?(apr) || valid_float?(apr))
+    return apr if
+      apr.to_f == 0 || valid_positive_integer?(apr) ||
+      valid_positive_float?(apr)
     prompt(MESSAGES['valid_apr'])
   end
 end
@@ -55,9 +58,10 @@ def get_loan_duration
   loop do
     prompt(MESSAGES['loan_duration'])
     loan_duration_years = gets.chomp
-    return loan_duration_years if loan_duration_years.to_f > 0 &&
-                                  (valid_integer?(loan_duration_years) ||
-                                  valid_float?(loan_duration_years))
+    return loan_duration_years if
+      loan_duration_years.to_f > 0 &&
+      (valid_positive_integer?(loan_duration_years) ||
+      valid_positive_float?(loan_duration_years))
     prompt(MESSAGES['valid_loan_duration'])
   end
 end
