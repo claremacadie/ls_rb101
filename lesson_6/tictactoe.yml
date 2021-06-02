@@ -1,0 +1,13 @@
+# this is a configuration file to deal with messages to the user
+
+welcome: "Welcome to tic tac toe."
+player_turn: "Where would you like to go? (Input an integer between 1 and 9)"
+invalid_turn: "That position is already taken, try again."
+invalid_input: "That is not an integer between 1 and 9, try again."
+thinking_pause: "Hmmmmmmm .... Thinking ......"
+player_wins: "You win. Well done!"
+computer_wins: "I won. Yay! Better luck next time."
+tie: "It's a tie!"
+play_again?: "Would you like to play again?"
+instruction: "(y to play again, any other key to exit)"
+goodbye: "Thank you for playing tic tac toe. Goodbye!"
