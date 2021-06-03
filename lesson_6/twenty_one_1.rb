@@ -9,6 +9,7 @@ CARD_VALUES = {
 }
 
 VALID_INPUTS = ['h', 's']
+VALID_ANSWERS = ['y', 'n']
 
 require 'yaml'
 MESSAGES = YAML.load_file('twenty_one_messages.yml')
@@ -101,16 +102,30 @@ def declare_winner(cards)
   end
 end
 
+def another_game?
+  answer = ''
+  loop do
+    prompt(MESSAGES['ask_another_game?'])
+    answer = gets.chomp
+    break if VALID_ANSWERS.include?(answer)
+    prompt(MESSAGES['invalid_answer'])
+  end
+  answer == 'y'
+end
+
 # main program
-system('clear')
-prompt(MESSAGES['welcome'])
-cards = initialize_deck!
-deal_initial_cards!(cards)
-player_turn!(cards)
-dealer_turn!(cards)
+loop do
+  system('clear')
+  prompt(MESSAGES['welcome'])
+  cards = initialize_deck!
+  deal_initial_cards!(cards)
+  player_turn!(cards)
+  dealer_turn!(cards)
 
-p card_locations(cards, 'player')
-p card_locations(cards, 'dealer')
+  p card_locations(cards, 'player')
+  p card_locations(cards, 'dealer')
 
-declare_winner(cards)
+  declare_winner(cards)
+  break if !another_game?
+end
 prompt(MESSAGES['goodbye'])
