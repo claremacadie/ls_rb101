@@ -1,0 +1,11 @@
+# this is a configuration file to deal with messages to the user
+
+welcome: "Welcome to Twenty One!"
+ask_hit_or_stay: "Would you like to 'hit' or 'stay'?"
+instruction_for_hit_or_stay: "Enter 'h' for hit or 's' for stay."
+invalid_choice: "That is not a valid choice, please try again."
+player_bust: "Oh dear, you've gone bust. You lose!"
+dealer_bust: "Oh no, I've gone bust. You win!"
+player_win: "You win. Well done!."
+dealer_win: "I win. Better luck next time!."
+goodbye: "Thank you for playing Twenty One. Goodbye."
