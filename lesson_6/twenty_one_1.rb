@@ -108,7 +108,12 @@ def player_turn!(cards)
     declare_initial_dealer_card_values(cards)
     declare_participant_card_values(cards, 'player')
     hit_or_stay = ask_player_hit_or_stay
-    deal_card!(cards, 'player') if hit_or_stay == 'h'
+    if hit_or_stay == 'h'
+      prompt(MESSAGES['player_chose_hit'])
+      deal_card!(cards, 'player')
+    elsif hit_or_stay == 's'
+      prompt(MESSAGES['player_chose_stay'])
+    end
     return if hit_or_stay == 's' || busted?(cards, 'player')
   end
 end
@@ -150,8 +155,10 @@ loop do
   deal_initial_cards!(cards)
   player_turn!(cards)
   declare_participant_card_values(cards, 'player')
-  dealer_turn!(cards)
-  declare_participant_card_values(cards, 'dealer')
+  if !busted?(cards, 'player')
+    dealer_turn!(cards)
+    declare_participant_card_values(cards, 'dealer')
+  end
 
   declare_winner(cards)
   break if !another_game?
