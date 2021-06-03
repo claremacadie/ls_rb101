@@ -62,16 +62,22 @@ def deal_initial_cards!(cards)
   2.times { deal_card!(cards, 'dealer') }
 end
 
+def card_value(card)
+  value = ''
+  if card == 'A'
+    value = 'Ace'
+  elsif TEN_VALUE_CARDS.include?(card)
+    value = '10'
+  else
+    value = card
+  end
+  value
+end
+
 def declare_card_values(cards)
   dealer_cards = card_locations(cards, 'dealer')
   first_dealer_card = dealer_cards[0].split('_')[0]
-  if first_dealer_card == 'A'
-    first_dealer_card_value = 'Ace'
-  elsif TEN_VALUE_CARDS.include?(first_dealer_card)
-    first_dealer_card_value = '10'
-  else
-    first_dealer_card_value = first_dealer_card
-  end
+  first_dealer_card_value = card_value(first_dealer_card)
   prompt("Dealer has: #{first_dealer_card_value} and unknown card.")
 end
 
