@@ -8,6 +8,8 @@ CARD_VALUES = {
   '9' => 9, '10' => 10, 'J' => 10, 'Q' => 10, 'K' => 10, 'A' => 1
 }
 
+TEN_VALUE_CARDS = ['J', 'Q', 'K']
+
 VALID_INPUTS = ['h', 's']
 VALID_ANSWERS = ['y', 'n']
 
@@ -60,6 +62,19 @@ def deal_initial_cards!(cards)
   2.times { deal_card!(cards, 'dealer') }
 end
 
+def declare_card_values(cards)
+  dealer_cards = card_locations(cards, 'dealer')
+  first_dealer_card = dealer_cards[0].split('_')[0]
+  if first_dealer_card == 'A'
+    first_dealer_card_value = 'Ace'
+  elsif TEN_VALUE_CARDS.include?(first_dealer_card)
+    first_dealer_card_value = '10'
+  else
+    first_dealer_card_value = first_dealer_card
+  end
+  prompt("Dealer has: #{first_dealer_card_value} and unknown card.")
+end
+
 def ask_player_hit_or_stay
   loop do
     prompt(MESSAGES['ask_hit_or_stay'])
@@ -76,6 +91,7 @@ end
 
 def player_turn!(cards)
   loop do
+    declare_card_values(cards)
     prompt("Your cards are: #{card_locations(cards, 'player')}")
     hit_or_stay = ask_player_hit_or_stay
     deal_card!(cards, 'player') if hit_or_stay == 'h'
@@ -90,12 +106,11 @@ def dealer_turn!(cards)
 end
 
 def declare_winner(cards)
-  case
-  when busted?(cards, 'player')
+  if busted?(cards, 'player')
     prompt(MESSAGES['player_bust'])
-  when busted?(cards, 'dealer')
+  elsif busted?(cards, 'dealer')
     prompt(MESSAGES['dealer_bust'])
-  when hand_value(cards, 'player') > hand_value(cards, 'dealer')
+  elsif hand_value(cards, 'player') > hand_value(cards, 'dealer')
     prompt(MESSAGES['player_win'])
   else
     prompt(MESSAGES['dealer_win'])
