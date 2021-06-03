@@ -2,13 +2,15 @@
 # first stab at data structure for the deck, player's and dealer's cards.
 
 CARD_SUITS = [:hearts, :clubs, :diamonds, :spades]
-CARD_RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
+CARD_RANKS = [
+  'Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King'
+]
 CARD_VALUES = {
   '2' => 2, '3' => 3, '4' => 4, '5' => 5, '6' => 6, '7' => 7, '8' => 8,
-  '9' => 9, '10' => 10, 'J' => 10, 'Q' => 10, 'K' => 10, 'A' => 1
+  '9' => 9, '10' => 10, 'Jack' => 10, 'Queen' => 10, 'King' => 10, 'Ace' => 1
 }
 
-TEN_VALUE_CARDS = ['J', 'Q', 'K']
+TEN_VALUE_CARDS = ['Jack', 'Queen', 'King']
 
 VALID_INPUTS = ['h', 's']
 VALID_ANSWERS = ['y', 'n']
@@ -49,7 +51,7 @@ def hand_value(cards, hand)
   aces = []
   cards_in_hand.each do |card|
     rank = card.split('_')[0]
-    aces << 'A' if rank == 'A'
+    aces << 'Ace' if rank == 'Ace'
     value += CARD_VALUES.fetch(rank)
   end
 
@@ -62,20 +64,29 @@ def deal_initial_cards!(cards)
   2.times { deal_card!(cards, 'dealer') }
 end
 
-def card_value(card)
-  value = case
-          when card == 'A' then 'Ace'
-          when TEN_VALUE_CARDS.include?(card) then '10'
-          else
-            card
+def declare_dealer_card_values(cards)
+  dealer_cards = card_locations(cards, 'dealer')
+  first_dealer_card = dealer_cards[0].split('_')[0]
+  prompt("Dealer has: #{first_dealer_card} and unknown card.")
+end
+
+def joinor(arr, delimiter=', ', word='and')
+  case arr.size
+  when 0 then ''
+  when 1 then arr.first
+  when 2 then arr.join(" #{word} ")
+  else
+    arr[-1] = "#{word} #{arr.last}"
+    arr.join(delimiter)
   end
 end
 
-def declare_card_values(cards)
-  dealer_cards = card_locations(cards, 'dealer')
-  first_dealer_card = dealer_cards[0].split('_')[0]
-  first_dealer_card_value = card_value(first_dealer_card)
-  prompt("Dealer has: #{first_dealer_card_value} and unknown card.")
+def declare_player_card_values(cards)
+  player_cards = card_locations(cards, 'player')
+  player_cards_without_suits = player_cards.each_with_object([]) do |card, arr|
+    arr << card.split('_')[0]
+  end
+  prompt("Player has: #{joinor(player_cards_without_suits)}.")
 end
 
 def ask_player_hit_or_stay
@@ -94,8 +105,8 @@ end
 
 def player_turn!(cards)
   loop do
-    declare_card_values(cards)
-    prompt("Your cards are: #{card_locations(cards, 'player')}")
+    declare_dealer_card_values(cards)
+    declare_player_card_values(cards)
     hit_or_stay = ask_player_hit_or_stay
     deal_card!(cards, 'player') if hit_or_stay == 'h'
     return if hit_or_stay == 's' || busted?(cards, 'player')
