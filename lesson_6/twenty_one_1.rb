@@ -64,7 +64,7 @@ def deal_initial_cards!(cards)
   2.times { deal_card!(cards, 'dealer') }
 end
 
-def declare_dealer_card_values(cards)
+def declare_initial_dealer_card_values(cards)
   dealer_cards = card_locations(cards, 'dealer')
   first_dealer_card = dealer_cards[0].split('_')[0]
   prompt("Dealer has: #{first_dealer_card} and unknown card.")
@@ -81,12 +81,12 @@ def joinor(arr, delimiter=', ', word='and')
   end
 end
 
-def declare_player_card_values(cards)
-  player_cards = card_locations(cards, 'player')
-  player_cards_without_suits = player_cards.each_with_object([]) do |card, arr|
+def declare_participant_card_values(cards, participant)
+  hand = card_locations(cards, participant)
+  hand_without_suits = hand.each_with_object([]) do |card, arr|
     arr << card.split('_')[0]
   end
-  prompt("Player has: #{joinor(player_cards_without_suits)}.")
+  prompt("#{participant.capitalize} has: #{joinor(hand_without_suits)}.")
 end
 
 def ask_player_hit_or_stay
@@ -105,8 +105,8 @@ end
 
 def player_turn!(cards)
   loop do
-    declare_dealer_card_values(cards)
-    declare_player_card_values(cards)
+    declare_initial_dealer_card_values(cards)
+    declare_participant_card_values(cards, 'player')
     hit_or_stay = ask_player_hit_or_stay
     deal_card!(cards, 'player') if hit_or_stay == 'h'
     return if hit_or_stay == 's' || busted?(cards, 'player')
@@ -149,10 +149,9 @@ loop do
   cards = initialize_deck!
   deal_initial_cards!(cards)
   player_turn!(cards)
+  declare_participant_card_values(cards, 'player')
   dealer_turn!(cards)
-
-  p card_locations(cards, 'player')
-  p card_locations(cards, 'dealer')
+  declare_participant_card_values(cards, 'dealer')
 
   declare_winner(cards)
   break if !another_game?
