@@ -63,15 +63,12 @@ def deal_initial_cards!(cards)
 end
 
 def card_value(card)
-  value = ''
-  if card == 'A'
-    value = 'Ace'
-  elsif TEN_VALUE_CARDS.include?(card)
-    value = '10'
-  else
-    value = card
+  value = case
+          when card == 'A' then 'Ace'
+          when TEN_VALUE_CARDS.include?(card) then '10'
+          else
+            card
   end
-  value
 end
 
 def declare_card_values(cards)
