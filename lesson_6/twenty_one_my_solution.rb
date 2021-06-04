@@ -1,23 +1,19 @@
 # twenty_one.rb
 
-CARD_SUITS = [:hearts, :clubs, :diamonds, :spades]
-CARD_RANKS = [
-  'Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King'
-]
+require 'yaml'
+MESSAGES = YAML.load_file('twenty_one_messages.yml')
+
+CARD_SUITS = ['H', 'C', 'D', 'S']
 CARD_VALUES = {
   '2' => 2, '3' => 3, '4' => 4, '5' => 5, '6' => 6, '7' => 7, '8' => 8,
   '9' => 9, '10' => 10, 'Jack' => 10, 'Queen' => 10, 'King' => 10, 'Ace' => 1
 }
 
-TEN_VALUE_CARDS = ['Jack', 'Queen', 'King']
-
 BUST_VALUE = 21
+DEALER_STICK_VALUE = 17
 
 VALID_INPUTS = ['h', 's']
 VALID_ANSWERS = ['y', 'n']
-
-require 'yaml'
-MESSAGES = YAML.load_file('twenty_one_messages.yml')
 
 def prompt(message)
   puts("=> #{message}")
@@ -40,7 +36,7 @@ end
 
 def initialize_deck!
   result = CARD_SUITS.each_with_object({}) do |suit, hsh|
-    CARD_RANKS.each do |value|
+    CARD_VALUES.keys.each do |value|
       card = "#{value}_#{suit}"
       hsh[card] = '-'
     end
@@ -49,7 +45,7 @@ def initialize_deck!
 end
 
 def filter(cards, participant)
-  cards.select { |k, v| v == participant }.keys
+  cards.select { |_, v| v == participant }.keys
 end
 
 def deal_card!(cards, participant)
@@ -62,16 +58,13 @@ def rank(card)
   card.split('_')[0]
 end
 
-def hand_value(cards, hand)
-  cards_in_hand = filter(cards, hand)
+def hand_value(cards, participant)
+  hand = filter(cards, participant)
   value = 0
-  aces = []
-  cards_in_hand.each do |card|
-    rank = rank(card)
-    aces << 'Ace' if rank == 'Ace'
-    value += CARD_VALUES.fetch(rank)
+  aces = hand.each_with_object([]) do |card, arr|
+    arr << 'Ace' if rank(card) == 'Ace'
+    value += CARD_VALUES.fetch(rank(card))
   end
-
   aces.each { value += 10 if value <= 11 }
   value
 end
@@ -81,44 +74,16 @@ def deal_initial_cards!(cards)
   2.times { deal_card!(cards, 'dealer') }
 end
 
-def declare_initial_dealer_card_values(cards)
-  dealer_cards = filter(cards, 'dealer')
-  first_dealer_card = rank(dealer_cards[0])
-  prompt("I have: #{first_dealer_card} and unknown card.")
+def display_hand(cards, participant)
+  hand = filter(cards, participant)
+  prompt("#{pronoun(participant)} have: #{joinor(hand)}, "\
+    "for a total of #{hand_value(cards, participant)}.")
 end
 
-def declare_prior_dealer_card_values(cards)
+def display_initial_hands(cards)
   dealer_hand = filter(cards, 'dealer')
-  dealer_hand_ranks = dealer_hand.map { |card| rank(card) }
-  prompt("I have: #{joinor(dealer_hand_ranks)}, "\
-    "for a total of #{hand_value(cards, 'dealer')}.")
-end
-
-def declare_initial_player_card_values(cards)
-  hand = filter(cards, 'player')
-  hand_ranks = hand.each_with_object([]) do |card, arr|
-    arr << card.split('_')[0]
-  end
-  prompt("#{pronoun('player')} have: #{joinor(hand_ranks)}, "\
-    "for a total of #{hand_value(cards, 'player')}.")
-end
-
-def declare_participant_card_values(cards, participant)
-  hand = filter(cards, participant)
-  hand_ranks = hand.each_with_object([]) do |card, arr|
-    arr << card.split('_')[0]
-  end
-  prompt("#{pronoun(participant)} now have: #{joinor(hand_ranks)}, "\
-    "for a total of #{hand_value(cards, participant)}.")
-end
-
-def declare_final_participant_card_values(cards, participant)
-  hand = filter(cards, participant)
-  hand_ranks = hand.each_with_object([]) do |card, arr|
-    arr << card.split('_')[0]
-  end
-  prompt("#{participant.capitalize} has: #{joinor(hand_ranks)}, "\
-    "for a total of #{hand_value(cards, participant)}.")
+  prompt("I have: #{dealer_hand[0]} and unknown card.")
+  display_hand(cards, 'player')
 end
 
 def ask_player_hit_or_stay
@@ -135,16 +100,14 @@ def busted?(cards, participant)
 end
 
 def player_turn!(cards)
-  declare_initial_dealer_card_values(cards)
-  declare_initial_player_card_values(cards)
   loop do
     hit_or_stay = ask_player_hit_or_stay
     if hit_or_stay == 'h'
       prompt(MESSAGES['player_chose_hit'])
       deal_card!(cards, 'player')
-      declare_participant_card_values(cards, 'player')
+      display_hand(cards, 'player')
     elsif hit_or_stay == 's'
-      prompt("You stayed at #{hand_value(cards, 'player')}")
+      prompt("You stayed at #{hand_value(cards, 'player')}.")
     end
     return if hit_or_stay == 's' || busted?(cards, 'player')
   end
@@ -152,41 +115,30 @@ end
 
 def dealer_turn!(cards)
   prompt(MESSAGES['dealer_turn'])
-  declare_prior_dealer_card_values(cards)
-  loop do
-    if hand_value(cards, 'dealer') < 17
-      deal_card!(cards, 'dealer')
-      prompt(MESSAGES['dealer_hits'])
-      declare_participant_card_values(cards, 'dealer')
-    elsif busted?(cards, 'dealer')
-      return
-    else
-      prompt("Dealer stays at #{hand_value(cards, 'dealer')}")
-      return
-    end
+  display_hand(cards, 'dealer')
+  while hand_value(cards, 'dealer') < DEALER_STICK_VALUE
+    deal_card!(cards, 'dealer')
+    prompt(MESSAGES['dealer_hits'])
+    display_hand(cards, 'dealer')
   end
 end
 
+def display_final_hands(cards)
+  prompt(MESSAGES['spacer_='])
+  ['dealer', 'player'].each do |participant|
+    hand = filter(cards, participant)
+    prompt("#{participant.capitalize} has: #{joinor(hand)}, "\
+      "for a total of #{hand_value(cards, participant)}.")
+  end
+  prompt(MESSAGES['spacer_='])
+end
+
 def declare_winner(cards)
-  if busted?(cards, 'player')
-    prompt(MESSAGES['player_bust'])
-  elsif busted?(cards, 'dealer')
-    prompt(MESSAGES['dealer_bust'])
-  elsif hand_value(cards, 'player') > hand_value(cards, 'dealer')
-    prompt(MESSAGES['spacer_='])
-    declare_final_participant_card_values(cards, 'dealer')
-    declare_final_participant_card_values(cards, 'player')
-    prompt(MESSAGES['spacer_='])
+  if hand_value(cards, 'player') > hand_value(cards, 'dealer')
     prompt(MESSAGES['player_win'])
   elsif hand_value(cards, 'dealer') > hand_value(cards, 'player')
-    prompt(MESSAGES['spacer_='])
-    declare_final_participant_card_values(cards, 'dealer')
-    declare_final_participant_card_values(cards, 'player')
-    prompt(MESSAGES['spacer_='])
     prompt(MESSAGES['dealer_win'])
   else
-    declare_final_participant_card_values(cards, 'dealer')
-    declare_final_participant_card_values(cards, 'player')
     prompt(MESSAGES['tie'])
   end
 end
@@ -209,9 +161,26 @@ loop do
   prompt(MESSAGES['welcome'])
   cards = initialize_deck!
   deal_initial_cards!(cards)
+  display_initial_hands(cards)
+
   player_turn!(cards)
-  dealer_turn!(cards) if !busted?(cards, 'player')
+  if busted?(cards, 'player')
+    prompt(MESSAGES['spacer_-'])
+    prompt(MESSAGES['player_bust'])
+    another_game? ? next : break
+  end
+
+  dealer_turn!(cards)
+  if busted?(cards, 'dealer')
+    prompt(MESSAGES['spacer_-'])
+    prompt(MESSAGES['dealer_bust'])
+    another_game? ? next : break
+  else
+    prompt("I stayed at #{hand_value(cards, 'dealer')}.")
+  end
+
+  display_final_hands(cards)
   declare_winner(cards)
-  break if !another_game?
+  another_game? ? next : break
 end
 prompt(MESSAGES['goodbye'])
