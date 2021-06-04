@@ -108,18 +108,27 @@ def player_turn!(cards)
       display_hand(cards, 'player')
     elsif hit_or_stay == 's'
       prompt("You stayed at #{hand_value(cards, 'player')}.")
+      return
     end
-    return if hit_or_stay == 's' || busted?(cards, 'player')
+    break if busted?(cards, 'player')
   end
+  prompt(MESSAGES['player_bust'])
 end
 
 def dealer_turn!(cards)
+  prompt(MESSAGES['spacer_-'])
   prompt(MESSAGES['dealer_turn'])
   display_hand(cards, 'dealer')
   while hand_value(cards, 'dealer') < DEALER_STICK_VALUE
     deal_card!(cards, 'dealer')
     prompt(MESSAGES['dealer_hits'])
     display_hand(cards, 'dealer')
+  end
+
+  if busted?(cards, 'dealer')
+    prompt(MESSAGES['dealer_bust'])
+  else
+    prompt("I stayed at #{hand_value(cards, 'dealer')}.")
   end
 end
 
@@ -134,7 +143,11 @@ def display_final_hands(cards)
 end
 
 def declare_winner(cards)
-  if hand_value(cards, 'player') > hand_value(cards, 'dealer')
+  if busted?(cards, 'dealer')
+    prompt(MESSAGES['player_win'])
+  elsif busted?(cards, 'player')
+    prompt(MESSAGES['dealer_win'])
+  elsif hand_value(cards, 'player') > hand_value(cards, 'dealer')
     prompt(MESSAGES['player_win'])
   elsif hand_value(cards, 'dealer') > hand_value(cards, 'player')
     prompt(MESSAGES['dealer_win'])
@@ -164,19 +177,8 @@ loop do
   display_initial_hands(cards)
 
   player_turn!(cards)
-  if busted?(cards, 'player')
-    prompt(MESSAGES['spacer_-'])
-    prompt(MESSAGES['player_bust'])
-    another_game? ? next : break
-  end
-
-  dealer_turn!(cards)
-  if busted?(cards, 'dealer')
-    prompt(MESSAGES['spacer_-'])
-    prompt(MESSAGES['dealer_bust'])
-    another_game? ? next : break
-  else
-    prompt("I stayed at #{hand_value(cards, 'dealer')}.")
+  if !busted?(cards, 'player')
+    dealer_turn!(cards)
   end
 
   display_final_hands(cards)
