@@ -11,6 +11,8 @@ CARD_VALUES = {
 
 TEN_VALUE_CARDS = ['Jack', 'Queen', 'King']
 
+BUST_VALUE = 21
+
 VALID_INPUTS = ['h', 's']
 VALID_ANSWERS = ['y', 'n']
 
@@ -21,12 +23,19 @@ def prompt(message)
   puts("=> #{message}")
 end
 
-def pronoun(participant)
-  if participant == 'player'
-    'You'
-  elsif participant == 'dealer'
-    'I'
+def joinor(arr, delimiter=', ', word='and')
+  case arr.size
+  when 0 then ''
+  when 1 then arr.first
+  when 2 then arr.join(" #{word} ")
+  else
+    arr[-1] = "#{word} #{arr.last}"
+    arr.join(delimiter)
   end
+end
+
+def pronoun(participant)
+  participant == 'player' ? 'You' : 'I'
 end
 
 def initialize_deck!
@@ -39,25 +48,26 @@ def initialize_deck!
   result
 end
 
-def card_locations(cards, participant)
-  result = []
-  cards.each do |k, v|
-    result << k if v == participant
-  end
-  result
+def filter(cards, participant)
+  cards.select { |k, v| v == participant }.keys
 end
 
 def deal_card!(cards, participant)
-  result = card_locations(cards, '-').sample
-  cards[result] = participant
+  deck = filter(cards, '-')
+  card = deck.sample
+  cards[card] = participant
+end
+
+def rank(card)
+  card.split('_')[0]
 end
 
 def hand_value(cards, hand)
-  cards_in_hand = card_locations(cards, hand)
+  cards_in_hand = filter(cards, hand)
   value = 0
   aces = []
   cards_in_hand.each do |card|
-    rank = card.split('_')[0]
+    rank = rank(card)
     aces << 'Ace' if rank == 'Ace'
     value += CARD_VALUES.fetch(rank)
   end
@@ -72,55 +82,42 @@ def deal_initial_cards!(cards)
 end
 
 def declare_initial_dealer_card_values(cards)
-  dealer_cards = card_locations(cards, 'dealer')
-  first_dealer_card = dealer_cards[0].split('_')[0]
-  prompt("#{pronoun('dealer')} have: #{first_dealer_card} and unknown card.")
+  dealer_cards = filter(cards, 'dealer')
+  first_dealer_card = rank(dealer_cards[0])
+  prompt("I have: #{first_dealer_card} and unknown card.")
 end
 
 def declare_prior_dealer_card_values(cards)
-  dealer_hand = card_locations(cards, 'dealer')
-  dealer_hand_without_suits = dealer_hand.each_with_object([]) do |card, arr|
-    arr << card.split('_')[0]
-  end
-  prompt("I have: #{joinor(dealer_hand_without_suits)}, "\
+  dealer_hand = filter(cards, 'dealer')
+  dealer_hand_ranks = dealer_hand.map { |card| rank(card) }
+  prompt("I have: #{joinor(dealer_hand_ranks)}, "\
     "for a total of #{hand_value(cards, 'dealer')}.")
 end
 
-def joinor(arr, delimiter=', ', word='and')
-  case arr.size
-  when 0 then ''
-  when 1 then arr.first
-  when 2 then arr.join(" #{word} ")
-  else
-    arr[-1] = "#{word} #{arr.last}"
-    arr.join(delimiter)
-  end
-end
-
 def declare_initial_player_card_values(cards)
-  hand = card_locations(cards, 'player')
-  hand_without_suits = hand.each_with_object([]) do |card, arr|
+  hand = filter(cards, 'player')
+  hand_ranks = hand.each_with_object([]) do |card, arr|
     arr << card.split('_')[0]
   end
-  prompt("#{pronoun('player')} have: #{joinor(hand_without_suits)}, "\
+  prompt("#{pronoun('player')} have: #{joinor(hand_ranks)}, "\
     "for a total of #{hand_value(cards, 'player')}.")
 end
 
 def declare_participant_card_values(cards, participant)
-  hand = card_locations(cards, participant)
-  hand_without_suits = hand.each_with_object([]) do |card, arr|
+  hand = filter(cards, participant)
+  hand_ranks = hand.each_with_object([]) do |card, arr|
     arr << card.split('_')[0]
   end
-  prompt("#{pronoun(participant)} now have: #{joinor(hand_without_suits)}, "\
+  prompt("#{pronoun(participant)} now have: #{joinor(hand_ranks)}, "\
     "for a total of #{hand_value(cards, participant)}.")
 end
 
 def declare_final_participant_card_values(cards, participant)
-  hand = card_locations(cards, participant)
-  hand_without_suits = hand.each_with_object([]) do |card, arr|
+  hand = filter(cards, participant)
+  hand_ranks = hand.each_with_object([]) do |card, arr|
     arr << card.split('_')[0]
   end
-  prompt("#{participant.capitalize} has: #{joinor(hand_without_suits)}, "\
+  prompt("#{participant.capitalize} has: #{joinor(hand_ranks)}, "\
     "for a total of #{hand_value(cards, participant)}.")
 end
 
@@ -134,7 +131,7 @@ def ask_player_hit_or_stay
 end
 
 def busted?(cards, participant)
-  hand_value(cards, participant) > 21
+  hand_value(cards, participant) > BUST_VALUE
 end
 
 def player_turn!(cards)
@@ -213,10 +210,7 @@ loop do
   cards = initialize_deck!
   deal_initial_cards!(cards)
   player_turn!(cards)
-  if !busted?(cards, 'player')
-    dealer_turn!(cards)
-  end
-
+  dealer_turn!(cards) if !busted?(cards, 'player')
   declare_winner(cards)
   break if !another_game?
 end
