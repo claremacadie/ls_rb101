@@ -11,6 +11,7 @@ CARD_VALUES = {
 
 BUST_VALUE = 21
 DEALER_STICK_VALUE = 17
+GAME_TARGET = 5
 
 VALID_INPUTS = ['h', 's']
 VALID_ANSWERS = ['y', 'n']
@@ -142,17 +143,21 @@ def display_final_hands(cards)
   prompt(MESSAGES['spacer_='])
 end
 
-def declare_winner(cards)
-  if busted?(cards, 'dealer')
-    prompt(MESSAGES['player_win'])
-  elsif busted?(cards, 'player')
-    prompt(MESSAGES['dealer_win'])
-  elsif hand_value(cards, 'player') > hand_value(cards, 'dealer')
-    prompt(MESSAGES['player_win'])
-  elsif hand_value(cards, 'dealer') > hand_value(cards, 'player')
-    prompt(MESSAGES['dealer_win'])
+def determine_winner(cards)
+  if busted?(cards, 'dealer') then 'player'
+  elsif busted?(cards, 'player') then 'dealer'
+  elsif hand_value(cards, 'player') > hand_value(cards, 'dealer') then 'player'
+  elsif hand_value(cards, 'dealer') > hand_value(cards, 'player') then 'dealer'
   else
-    prompt(MESSAGES['tie'])
+    'tie'
+  end
+end
+
+def declare_winner(participant)
+  case participant
+  when 'player' then prompt(MESSAGES['player_win'])
+  when 'dealer' then prompt(MESSAGES['dealer_win'])
+  when 'tie' then prompt(MESSAGES['tie'])
   end
 end
 
@@ -168,10 +173,27 @@ def another_game?
   answer == 'y'
 end
 
+def update_score!(score, winner)
+  winner == 'tie' ? return : score[winner.to_sym] += 1
+end
+
+def display_score(score)
+  prompt("Score: Player = #{score[:player]}, Dealer = #{score[:dealer]}.")
+end
+
+def display_final_score(score)
+  prompt(MESSAGES['spacer_='])
+  champion = score.key(GAME_TARGET)
+  prompt("#{champion.to_s.upcase} is the CHAMPION!")
+end
+
 # main program
+score = { player: 0, dealer: 0 }
 loop do
   system('clear')
   prompt(MESSAGES['welcome'])
+  display_score(score)
+  prompt(MESSAGES['spacer_-'])
   cards = initialize_deck!
   deal_initial_cards!(cards)
   display_initial_hands(cards)
@@ -182,7 +204,12 @@ loop do
   end
 
   display_final_hands(cards)
-  declare_winner(cards)
+  winner = determine_winner(cards)
+  declare_winner(winner)
+  update_score!(score, winner)
+  display_score(score)
+  break if score.values.any?(GAME_TARGET)
   another_game? ? next : break
 end
+display_final_score(score)
 prompt(MESSAGES['goodbye'])

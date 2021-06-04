@@ -1,6 +1,6 @@
 # this is a configuration file to deal with messages to the user
 
-welcome: "Welcome to Twenty One!"
+welcome: "You are playing Twenty One! First to win 5 games is the champion!"
 ask_hit_or_stay: "Would you like to (h)it or (s)tay?"
 invalid_choice: "That is not a valid choice, please try again."
 player_chose_hit: "Player hits!"
@@ -13,6 +13,7 @@ spacer_-: "--------------"
 player_win: "You win. Well done!"
 dealer_win: "I win. Better luck next time!"
 tie: "It's a tie!"
-ask_another_game?: "Would you like to play again? (y or n)."
+ask_another_game?: "Remember, first to 5 is the champion.\
+  \n=> Would you like to play again? (y or n). "
 invalid_answer: "That is not a valid answer, please try again."
 goodbye: "Thank you for playing Twenty One. Goodbye."
