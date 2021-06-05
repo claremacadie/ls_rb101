@@ -35,7 +35,7 @@ def pronoun(participant)
   participant == 'player' ? 'You' : 'I'
 end
 
-def initialize_deck!
+def initialize_deck
   result = CARD_SUITS.each_with_object({}) do |suit, hsh|
     CARD_VALUES.keys.each do |value|
       card = "#{value}_#{suit}"
@@ -194,7 +194,7 @@ loop do
   prompt(MESSAGES['welcome'])
   display_score(score)
   prompt(MESSAGES['spacer_-'])
-  cards = initialize_deck!
+  cards = initialize_deck
   deal_initial_cards!(cards)
   display_initial_hands(cards)
 
