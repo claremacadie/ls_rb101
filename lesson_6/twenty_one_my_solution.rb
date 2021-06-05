@@ -3,7 +3,12 @@
 require 'yaml'
 MESSAGES = YAML.load_file('twenty_one_messages.yml')
 
-CARD_SUITS = ['H', 'C', 'D', 'S']
+HEART = "\u2665"
+CLUB = "\u2663"
+DIAMOND = "\u2666"
+SPADE = "\u2660"
+
+CARD_SUITS = [HEART, CLUB, DIAMOND, SPADE]
 CARD_VALUES = {
   '2' => 2, '3' => 3, '4' => 4, '5' => 5, '6' => 6, '7' => 7, '8' => 8,
   '9' => 9, '10' => 10, 'Jack' => 10, 'Queen' => 10, 'King' => 10, 'Ace' => 1
@@ -12,9 +17,11 @@ CARD_VALUES = {
 BUST_VALUE = 21
 DEALER_STICK_VALUE = 17
 GAME_TARGET = 5
+ACE_VALUE_ALTERNATE = 10
+ACE_VALUE_LIMIT = 11
 
-VALID_INPUTS = ['h', 's']
-VALID_ANSWERS = ['y', 'n']
+VALID_INPUTS = %w(h s)
+VALID_ANSWERS = %w(y n)
 
 def prompt(message)
   puts("=> #{message}")
@@ -38,7 +45,7 @@ end
 def initialize_deck
   result = CARD_SUITS.each_with_object({}) do |suit, hsh|
     CARD_VALUES.keys.each do |value|
-      card = "#{value}_#{suit}"
+      card = "#{value} #{suit}"
       hsh[card] = '-'
     end
   end
@@ -56,7 +63,7 @@ def deal_card!(cards, participant)
 end
 
 def rank(card)
-  card.split('_')[0]
+  card.split(' ')[0]
 end
 
 def hand_value(cards, participant)
@@ -66,7 +73,7 @@ def hand_value(cards, participant)
     arr << 'Ace' if rank(card) == 'Ace'
     value += CARD_VALUES.fetch(rank(card))
   end
-  aces.each { value += 10 if value <= 11 }
+  aces.each { value += ACE_VALUE_ALTERNATE if value <= ACE_VALUE_LIMIT }
   value
 end
 
@@ -90,7 +97,7 @@ end
 def ask_player_hit_or_stay
   loop do
     prompt(MESSAGES['ask_hit_or_stay'])
-    answer = gets.chomp
+    answer = gets.chomp.strip
     return answer if VALID_INPUTS.include?(answer)
     prompt(MESSAGES['invalid_choice'])
   end
@@ -166,7 +173,7 @@ def another_game?
   loop do
     prompt(MESSAGES['spacer_-'])
     prompt(MESSAGES['ask_another_game?'])
-    answer = gets.chomp
+    answer = gets.chomp.strip
     break if VALID_ANSWERS.include?(answer)
     prompt(MESSAGES['invalid_answer'])
   end
@@ -189,9 +196,13 @@ end
 
 # main program
 score = { player: 0, dealer: 0 }
+system('clear')
+prompt(MESSAGES['welcome'])
+gets
 loop do
   system('clear')
-  prompt(MESSAGES['welcome'])
+  prompt("You are playing Twenty One! " \
+    "First to win #{GAME_TARGET} games is the champion!")
   display_score(score)
   prompt(MESSAGES['spacer_-'])
   cards = initialize_deck
@@ -211,5 +222,6 @@ loop do
   break if score.values.any?(GAME_TARGET)
   break unless another_game?
 end
-display_champion(score)
+
+display_champion(score) if score.values.any?(GAME_TARGET)
 prompt(MESSAGES['goodbye'])

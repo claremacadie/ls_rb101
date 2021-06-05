@@ -1,6 +1,6 @@
 # this is a configuration file to deal with messages to the user
 
-welcome: "You are playing Twenty One! First to win 5 games is the champion!"
+welcome: "Welcome to Twenty One! Press enter to play."
 ask_hit_or_stay: "Would you like to (h)it or (s)tay?"
 invalid_choice: "That is not a valid choice, please try again."
 player_chose_hit: "Player hits!"
