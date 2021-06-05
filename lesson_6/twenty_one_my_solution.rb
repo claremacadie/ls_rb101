@@ -45,12 +45,12 @@ def initialize_deck
   result
 end
 
-def filter(cards, participant)
+def get_cards(cards, participant)
   cards.select { |_, v| v == participant }.keys
 end
 
 def deal_card!(cards, participant)
-  deck = filter(cards, '-')
+  deck = get_cards(cards, '-')
   card = deck.sample
   cards[card] = participant
 end
@@ -60,7 +60,7 @@ def rank(card)
 end
 
 def hand_value(cards, participant)
-  hand = filter(cards, participant)
+  hand = get_cards(cards, participant)
   value = 0
   aces = hand.each_with_object([]) do |card, arr|
     arr << 'Ace' if rank(card) == 'Ace'
@@ -76,14 +76,14 @@ def deal_initial_cards!(cards)
 end
 
 def display_hand(cards, participant)
-  hand = filter(cards, participant)
+  hand = get_cards(cards, participant)
   prompt("#{pronoun(participant)} have: #{joinor(hand)}, "\
     "for a total of #{hand_value(cards, participant)}.")
 end
 
 def display_initial_hands(cards)
-  dealer_hand = filter(cards, 'dealer')
-  prompt("I have: #{dealer_hand[0]} and unknown card.")
+  dealer_hand = get_cards(cards, 'dealer')
+  prompt("I have: #{dealer_hand[0]} and an unknown card.")
   display_hand(cards, 'player')
 end
 
@@ -136,7 +136,7 @@ end
 def display_final_hands(cards)
   prompt(MESSAGES['spacer_='])
   ['dealer', 'player'].each do |participant|
-    hand = filter(cards, participant)
+    hand = get_cards(cards, participant)
     prompt("#{participant.capitalize} has: #{joinor(hand)}, "\
       "for a total of #{hand_value(cards, participant)}.")
   end
@@ -181,7 +181,7 @@ def display_score(score)
   prompt("Score: Player = #{score[:player]}, Dealer = #{score[:dealer]}.")
 end
 
-def display_final_score(score)
+def display_champion(score)
   prompt(MESSAGES['spacer_='])
   champion = score.key(GAME_TARGET)
   prompt("#{champion.to_s.upcase} is the CHAMPION!")
@@ -209,7 +209,7 @@ loop do
   update_score!(score, winner)
   display_score(score)
   break if score.values.any?(GAME_TARGET)
-  another_game? ? next : break
+  break unless another_game?
 end
-display_final_score(score)
+display_champion(score)
 prompt(MESSAGES['goodbye'])
