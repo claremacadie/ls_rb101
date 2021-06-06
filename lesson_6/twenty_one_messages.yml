@@ -14,6 +14,7 @@ player_win: "You win. Well done!"
 dealer_win: "I win. Better luck next time!"
 tie: "It's a tie!"
 ask_another_game?: "Remember, first to 5 is the champion.\
-  \n=> Would you like to play again? (y or n). "
+  \n=> Would you like to continue the match? (y or n)"
+ask_another_match?: "Would you like to play another match? (y or n)"
 invalid_answer: "That is not a valid answer, please try again."
 goodbye: "Thank you for playing Twenty One. Goodbye."
