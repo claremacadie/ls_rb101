@@ -28,13 +28,14 @@ def prompt(message)
 end
 
 def joinor(arr, delimiter=', ', word='and')
-  case arr.size
+  new_arr = arr.clone
+  case new_arr.size
   when 0 then ''
-  when 1 then arr.first
-  when 2 then arr.join(" #{word} ")
+  when 1 then new_arr.first
+  when 2 then new_arr.join(" #{word} ")
   else
-    arr[-1] = "#{word} #{arr.last}"
-    arr.join(delimiter)
+    new_arr[-1] = "#{word} #{new_arr.last}"
+    new_arr.join(delimiter)
   end
 end
 
@@ -56,18 +57,19 @@ def get_cards(cards, participant)
   cards.select { |_, v| v == participant }.keys
 end
 
-def deal_card!(cards, participant)
+def deal_card!(cards, participant, hands)
   deck = get_cards(cards, '-')
   card = deck.sample
   cards[card] = participant
+  hands[participant] << card
 end
 
 def rank(card)
   card.split(' ')[0]
 end
 
-def hand_value(cards, participant)
-  hand = get_cards(cards, participant)
+def hand_value(hands, participant)
+  hand = hands.fetch(participant)
   value = 0
   aces = hand.each_with_object([]) do |card, arr|
     arr << 'Ace' if rank(card) == 'Ace'
@@ -77,21 +79,21 @@ def hand_value(cards, participant)
   value
 end
 
-def deal_initial_cards!(cards)
-  2.times { deal_card!(cards, 'player') }
-  2.times { deal_card!(cards, 'dealer') }
+def deal_initial_cards!(cards, hands)
+  2.times { deal_card!(cards, 'player', hands) }
+  2.times { deal_card!(cards, 'dealer', hands) }
 end
 
-def display_hand(cards, participant)
-  hand = get_cards(cards, participant)
+def display_hand(hands, participant)
+  hand = hands.fetch(participant)
   prompt("#{pronoun(participant)} have: #{joinor(hand)}, "\
-    "for a total of #{hand_value(cards, participant)}.")
+    "for a total of #{hand_value(hands, participant)}.")
 end
 
-def display_initial_hands(cards)
-  dealer_hand = get_cards(cards, 'dealer')
+def display_initial_hands(hands)
+  dealer_hand = hands.fetch('dealer')
   prompt("I have: #{dealer_hand[0]} and an unknown card.")
-  display_hand(cards, 'player')
+  display_hand(hands, 'player')
 end
 
 def ask_player_hit_or_stay
@@ -103,58 +105,58 @@ def ask_player_hit_or_stay
   end
 end
 
-def busted?(cards, participant)
-  hand_value(cards, participant) > BUST_VALUE
+def busted?(hands, participant)
+  hand_value(hands, participant) > BUST_VALUE
 end
 
-def player_turn!(cards)
+def player_turn!(cards, hands)
   loop do
     hit_or_stay = ask_player_hit_or_stay
     if hit_or_stay == 'h'
       prompt(MESSAGES['player_chose_hit'])
-      deal_card!(cards, 'player')
-      display_hand(cards, 'player')
+      deal_card!(cards, 'player', hands)
+      display_hand(hands, 'player')
     elsif hit_or_stay == 's'
-      prompt("You stayed at #{hand_value(cards, 'player')}.")
+      prompt("You stayed at #{hand_value(hands, 'player')}.")
       return
     end
-    break if busted?(cards, 'player')
+    break if busted?(hands, 'player')
   end
   prompt(MESSAGES['player_bust'])
 end
 
-def dealer_turn!(cards)
+def dealer_turn!(cards, hands)
   prompt(MESSAGES['spacer_-'])
   prompt(MESSAGES['dealer_turn'])
-  display_hand(cards, 'dealer')
-  while hand_value(cards, 'dealer') < DEALER_STICK_VALUE
-    deal_card!(cards, 'dealer')
+  display_hand(hands, 'dealer')
+  while hand_value(hands, 'dealer') < DEALER_STICK_VALUE
+    deal_card!(cards, 'dealer', hands)
     prompt(MESSAGES['dealer_hits'])
-    display_hand(cards, 'dealer')
+    display_hand(hands, 'dealer')
   end
 
-  if busted?(cards, 'dealer')
+  if busted?(hands, 'dealer')
     prompt(MESSAGES['dealer_bust'])
   else
-    prompt("I stayed at #{hand_value(cards, 'dealer')}.")
+    prompt("I stayed at #{hand_value(hands, 'dealer')}.")
   end
 end
 
-def display_final_hands(cards)
+def display_final_hands(hands)
   prompt(MESSAGES['spacer_='])
   ['dealer', 'player'].each do |participant|
-    hand = get_cards(cards, participant)
+    hand = hands.fetch(participant)
     prompt("#{participant.capitalize} has: #{joinor(hand)}, "\
-      "for a total of #{hand_value(cards, participant)}.")
+      "for a total of #{hand_value(hands, participant)}.")
   end
   prompt(MESSAGES['spacer_='])
 end
 
-def determine_winner(cards)
-  if busted?(cards, 'dealer') then 'player'
-  elsif busted?(cards, 'player') then 'dealer'
-  elsif hand_value(cards, 'player') > hand_value(cards, 'dealer') then 'player'
-  elsif hand_value(cards, 'dealer') > hand_value(cards, 'player') then 'dealer'
+def determine_winner(hands)
+  if busted?(hands, 'dealer') then 'player'
+  elsif busted?(hands, 'player') then 'dealer'
+  elsif hand_value(hands, 'player') > hand_value(hands, 'dealer') then 'player'
+  elsif hand_value(hands, 'dealer') > hand_value(hands, 'player') then 'dealer'
   else
     'tie'
   end
@@ -213,16 +215,17 @@ loop do
   display_score(score)
   prompt(MESSAGES['spacer_-'])
   cards = initialize_deck
-  deal_initial_cards!(cards)
-  display_initial_hands(cards)
+  hands = { 'player' => [], 'dealer' => [] }
+  deal_initial_cards!(cards, hands)
+  display_initial_hands(hands)
 
-  player_turn!(cards)
-  if !busted?(cards, 'player')
-    dealer_turn!(cards)
+  player_turn!(cards, hands)
+  if !busted?(hands, 'player')
+    dealer_turn!(cards, hands)
   end
 
-  display_final_hands(cards)
-  winner = determine_winner(cards)
+  display_final_hands(hands)
+  winner = determine_winner(hands)
   declare_winner(winner)
   update_score!(score, winner)
   display_score(score)
