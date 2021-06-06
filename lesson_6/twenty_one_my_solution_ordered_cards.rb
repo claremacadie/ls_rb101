@@ -44,24 +44,16 @@ def pronoun(participant)
 end
 
 def initialize_deck
-  result = CARD_SUITS.each_with_object({}) do |suit, hsh|
+  cards = CARD_SUITS.each_with_object([]) do |suit, arr|
     CARD_VALUES.keys.each do |value|
-      card = "#{value} #{suit}"
-      hsh[card] = '-'
+      arr << "#{value} #{suit}"
     end
   end
-  result
-end
-
-def get_cards(cards, participant)
-  cards.select { |_, v| v == participant }.keys
+  cards.shuffle
 end
 
 def deal_card!(cards, participant, hands)
-  deck = get_cards(cards, '-')
-  card = deck.sample
-  cards[card] = participant
-  hands[participant] << card
+  hands[participant] << cards.pop
 end
 
 def rank(card)
@@ -203,11 +195,13 @@ end
 def clear_screen
   system('clear')
 end
+
 # main program
 clear_screen
 prompt(MESSAGES['welcome'])
 gets
 score = { player: 0, dealer: 0 }
+
 loop do
   clear_screen
   prompt("You are playing Twenty One! " \
@@ -229,6 +223,7 @@ loop do
   declare_winner(winner)
   update_score!(score, winner)
   display_score(score)
+
   if score.values.any?(GAME_TARGET)
     display_champion(score) if score.values.any?(GAME_TARGET)
     score = { player: 0, dealer: 0 }
