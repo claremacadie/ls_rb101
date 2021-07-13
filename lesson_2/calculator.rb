@@ -35,13 +35,13 @@ def operation_to_message(op)
   word
 end
 
-prompt(MESSAGES['welcome'])
+prompt(MESSAGES['fr']['welcome'])
 
 name = ''
 loop do
   name = Kernel.gets().chomp()
   if name.empty?
-    prompt(MESSAGES['valid_name'])
+    prompt(MESSAGES['fr']['valid_name'])
   else
     break
   end
@@ -54,29 +54,29 @@ loop do # main loop
 
   # ask the user for two numbers
   loop do
-    prompt(MESSAGES['first_number'])
+    prompt(MESSAGES['fr']['first_number'])
     number1 = Kernel.gets().chomp()
     if valid_number?(number1)
       break
     else
-      prompt(MESSAGES['valid_number'])
+      prompt(MESSAGES['fr']['valid_number'])
     end
   end
 
   number2 = ''
 
   loop do
-    prompt(MESSAGES['second_number'])
+    prompt(MESSAGES['fr']['second_number'])
     number2 = Kernel.gets().chomp()
     if valid_number?(number2)
       break
     else
-      prompt(MESSAGES['valid_number'])
+      prompt(MESSAGES['fr']['valid_number'])
     end
   end
 
   # ask the user for an operation to perform
-  prompt(MESSAGES['operations'])
+  prompt(MESSAGES['fr']['operations'])
 
   operator = ''
   loop do
@@ -85,7 +85,7 @@ loop do # main loop
     if %w(1 2 3 4).include?(operator)
       break
     else
-      prompt(MESSAGES['valid_option'])
+      prompt(MESSAGES['fr']['valid_option'])
     end
   end
 
@@ -106,9 +106,9 @@ loop do # main loop
   # output the result
   prompt("The result is #{result}")
 
-  prompt(MESSAGES['another_calculation'])
+  prompt(MESSAGES['fr']['another_calculation'])
   answer = Kernel.gets().chomp()
   break unless answer.downcase().start_with?('y')
 end
 
-prompt(MESSAGES['goodbye'])
+prompt(MESSAGES['fr']['goodbye'])

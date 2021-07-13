@@ -1,11 +1,23 @@
 # this is a configuration file to deal with messages to the user
 
-welcome: "Welcome to Calculator! Enter your name:"
-valid_name: "Make sure to enter a valid name."
-first_number: "What's the first number?"
-valid_number: "Hmm.... that doesn't look like a valid number"
-second_number: "What's the second number?"
-valid_option: "Must choose 1, 2, 3 or 4"
-another_calculation: "Do you want to perform another calculation? (Y to calculate again)"
-goodbye: "Thank you for using the calculator. Good bye!"
-operations: "What operation would you like to perform?\n  1) add\n  2) subtract\n  3) multiply\n  4) divide"
+en:
+  welcome: "Welcome to Calculator! Enter your name:"
+  valid_name: "Make sure to enter a valid name."
+  first_number: "What's the first number?"
+  valid_number: "Hmm.... that doesn't look like a valid number"
+  second_number: "What's the second number?"
+  valid_option: "Must choose 1, 2, 3 or 4"
+  another_calculation: "Do you want to perform another calculation? (Y to calculate again)"
+  goodbye: "Thank you for using the calculator. Good bye!"
+  operations: "What operation would you like to perform?\n  1) add\n  2) subtract\n  3) multiply\n  4) divide"
+
+fr:
+  welcome: "Bienvenue a la Calculatrice. Entrez votre nom:"
+  valid_name: "Make sure to enter a valid name."
+  first_number: "What's the first number?"
+  valid_number: "Hmm.... that doesn't look like a valid number"
+  second_number: "What's the second number?"
+  valid_option: "Must choose 1, 2, 3 or 4"
+  another_calculation: "Do you want to perform another calculation? (Y to calculate again)"
+  goodbye: "Thank you for using the calculator. Good bye!"
+  operations: "What operation would you like to perform?\n  1) add\n  2) subtract\n  3) multiply\n  4) divide"

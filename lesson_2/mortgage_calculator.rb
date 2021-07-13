@@ -114,3 +114,11 @@ loop do
   system('clear')
 end
 prompt(MESSAGES['goodbye'])
+
+def test_method
+  p 2
+  return
+
+end
+
+p test_method

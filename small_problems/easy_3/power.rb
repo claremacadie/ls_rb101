@@ -4,13 +4,20 @@ def multiply(x, y)
   x * y
 end
 
-def power(x, n)
-  if n > 2
-    multiply(x, power(x, n-1))
+def power(num, index)
+  if index == 0
+    1
+  elsif index == 1
+    num
+  elsif index == 2
+    multiply(num, num)
   else
-    multiply(x, x)
+    num * power(num, index - 1)
   end
 end
 
-puts power(3, 3) # => 27
-puts power(4, 7) # => 16384
+p power(2, 2) == 4
+p power(2, 4) == 16
+p power(3, 3) == 27
+p power(4, 5) == 1024
+p power(3, 1) == 3
