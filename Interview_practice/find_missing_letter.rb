@@ -22,8 +22,9 @@
 
 # Pseudocode
 # - Initialize a constant containing the letters of the alphabet
-# - Compare the given array against that constant
-# - Determine which letter is missing
+# - Extract complete array from constant (using first element and size of given array)
+# - Iterate through complete array and compare each element against given array
+# - Extract first element that is not the same in both arrays
 
 # Code
 
